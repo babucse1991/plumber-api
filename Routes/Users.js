@@ -33,6 +33,7 @@ users.post('/register', function(req, res) {
             connection.query('INSERT INTO users SET ?', userData, function(err, rows, fields) {
                 if (!err) {
                     appData.error = 0;
+                    appData["success"] = true;
                     appData["data"] = "User registered successfully!";
                     res.status(201).json(appData);
                 } else {
@@ -70,6 +71,7 @@ users.post('/login', function(req, res) {
                             });
                             appData.error = 0;
                             appData["token"] = token;
+                            appData["success"] = true;
                             res.status(200).json(appData);
                         } else {
                             appData.error = 1;
@@ -88,48 +90,7 @@ users.post('/login', function(req, res) {
     });
 });
 
-users.post('/login', function(req, res) {
 
-    var appData = {};
-    var email = req.body.email;
-    var password = req.body.password;
-
-    database.connection.getConnection(function(err, connection) {
-        if (err) {
-            appData["error"] = 1;
-            appData["data"] = "Internal Server Error";
-            res.status(500).json(appData);
-        } else {
-            connection.query('SELECT * FROM users WHERE email = ?', [email], function(err, rows, fields) {
-                if (err) {
-                    appData.error = 1;
-                    appData["data"] = "Error Occured!";
-                    res.status(400).json(appData);
-                } else {
-                    if (rows.length > 0) {
-                        if (rows[0].password == password) {
-                            token = jwt.sign(rows[0], process.env.SECRET_KEY, {
-                                expiresIn: 5000
-                            });
-                            appData.error = 0;
-                            appData["token"] = token;
-                            res.status(200).json(appData);
-                        } else {
-                            appData.error = 1;
-                            appData["data"] = "Email and Password does not match";
-                            res.status(204).json(appData);
-                        }
-                    } else {
-                        appData.error = 1;
-                        appData["data"] = "Email does not exists!";
-                        res.status(204).json(appData);
-                    }
-                }
-            });
-            connection.release();
-        }
-    });
-});
 
 users.use(function(req, res, next) {
     var token = req.body.token || req.headers['token'];
